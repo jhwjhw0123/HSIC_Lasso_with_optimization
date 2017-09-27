@@ -1,0 +1,533 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>solution</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-05-30"><meta name="DC.source" content="solution.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">******************************************************</a></li><li><a href="#2">load the data</a></li><li><a href="#3">A feature dictionary to Illustrate if our method works well</a></li><li><a href="#4">Main Routine to call HSIC with different method</a></li><li><a href="#5">Part I: Proximal Gradient methods</a></li><li><a href="#6">Part II: Proximal and Accelerated Proximal Gradient methods</a></li><li><a href="#7">Part III: FISTA with constant</a></li><li><a href="#8">Part IV: FISTA with backtrack method</a></li><li><a href="#9">Part V: Projected Newton with constant step</a></li><li><a href="#10">Part VI: Projected Newton with backtracking step</a></li><li><a href="#11">Part VII: Dual Augmented Lagrangian (Implement)</a></li><li><a href="#12">Part VIII: ADMM method</a></li><li><a href="#13">Part extra: DAL method with package</a></li></ul></div><h2 id="1">******************************************************</h2><pre class="codeinput"><span class="comment">%*Description: HSIC Lasso for solving house price feature selection</span>
+<span class="comment">%*Data: Kaggle house pricing data (only for assignment usage)</span>
+<span class="comment">%*Author: Chen Wang, UCL Dept. of Computer Science</span>
+<span class="comment">%*Reference: Yamada et al. 2013, High-Dimensional Feature Selection by Feature-Wise Kernelized Lasso</span>
+<span class="comment">%*Reference: Yamada et al. related software</span>
+<span class="comment">%***********************************************************</span>
+clc;
+clear;
+close <span class="string">all</span>
+</pre><h2 id="2">load the data</h2><pre class="codeinput">data_path = <span class="string">'../data/'</span>;
+<span class="comment">%load DAL package</span>
+addpath(genpath(<span class="string">'DAL_opt'</span>));
+addpath(genpath(<span class="string">'zeroSR1_opt'</span>));
+run <span class="string">setup_zeroSR1.m</span>;
+<span class="comment">%Load</span>
+<span class="comment">%Train Data</span>
+Train_Data = csvread(strcat(data_path,<span class="string">'train_data.csv'</span>),1,1);
+TrainX = Train_Data(:,1:end-1);
+TrainY = Train_Data(:,end);
+<span class="comment">%Normalized Training Data</span>
+TrainX_Normalized = TrainX./repmat(max(TrainX,[],1),size(TrainX,1),1);
+<span class="comment">%Test Data</span>
+Test_Data = csvread(strcat(data_path,<span class="string">'test_data.csv'</span>),1,1);
+TestX = Test_Data(:,1:end-1);
+TestY = Test_Data(:,end);
+<span class="comment">%Normalized Test Data</span>
+TestX_Normalized = TestX./repmat(max(TestX,[],1),size(TestX,1),1);
+<span class="comment">%fix the random parameter</span>
+rand(<span class="string">'seed'</span>,2018);
+<span class="comment">%get 5 random data for d&gt;n^2 test</span>
+index_5 = randi([1,size(TrainX,1)],5,1);
+Sparse_data_train_X = TrainX(index_5,:);
+Sparse_data_train_Y = TrainY(index_5,:);
+<span class="comment">%get 50 random data for d&lt;n^2 test</span>
+index_50 = randi([1,size(TrainX,1)],50,1);
+Sparse_dim_train_X = TrainX(index_50,:);
+Sparse_dim_train_Y = TrainY(index_50,:);
+</pre><pre class="codeoutput">Warning: Function cummin has the same name as a MATLAB builtin. We suggest you
+rename the function to avoid a potential name conflict. 
+</pre><h2 id="3">A feature dictionary to Illustrate if our method works well</h2><pre class="codeinput">FeatureDic = {<span class="string">'MSSubClass'</span>,<span class="string">'MSZoning'</span>,<span class="string">'LotFrontage'</span>,<span class="string">'LotArea'</span>,<span class="string">'Street'</span>,<span class="string">'Alley'</span>,<span class="string">'LotShape'</span>,<span class="string">'LandContour'</span>,<span class="keyword">...</span>
+    <span class="string">'Utilities'</span>,<span class="string">'LotConfig'</span>,<span class="string">'LandSlope'</span>,<span class="string">'Neighborhood'</span>,<span class="string">'Condition1'</span>,<span class="string">'Condition2'</span>,<span class="string">'BldgType'</span>,<span class="string">'HouseStyle'</span>,<span class="keyword">...</span>
+    <span class="string">'OverallQual'</span>,<span class="string">'OverallCond'</span>,<span class="string">'YearBuilt'</span>,<span class="string">'YearRemodAdd'</span>,<span class="string">'RoofStyle'</span>,<span class="string">'RoofMatl'</span>,<span class="string">'Exterior1st'</span>,<span class="string">'Exterior2nd'</span>,<span class="keyword">...</span>
+    <span class="string">'MasVnrType'</span>,<span class="string">'MasVnrArea'</span>,<span class="string">'ExterQual'</span>,<span class="string">'ExterCond'</span>,<span class="string">'Foundation'</span>,<span class="string">'BsmtQual'</span>,<span class="string">'BsmtCond'</span>,<span class="string">'BsmtExposure'</span>,<span class="string">'BsmtFinType1'</span>,<span class="keyword">...</span>
+    <span class="string">'BsmtFinSF1'</span>,<span class="string">'BsmtFinType2'</span>,<span class="string">'BsmtFinSF2'</span>,<span class="string">'BsmtUnfSF'</span>,<span class="string">'TotalBsmtSF'</span>,<span class="string">'Heating'</span>,<span class="string">'HeatingQC'</span>,<span class="string">'CentralAir'</span>,<span class="string">'Electrical'</span>,<span class="keyword">...</span>
+    <span class="string">'1stFlrSF'</span>,<span class="string">'2ndFlrSF'</span>,<span class="string">'LowQualFinSF'</span>,<span class="string">'GrLivArea'</span>,<span class="string">'BsmtFullBath'</span>,<span class="string">'BsmtHalfBath'</span>,<span class="string">'FullBath'</span>,<span class="string">'HalfBath'</span>,<span class="string">'BedroomAbvGr'</span>,<span class="keyword">...</span>
+    <span class="string">'KitchenAbvGr'</span>,<span class="string">'KitchenQual'</span>,<span class="string">'TotRmsAbvGrd'</span>,<span class="string">'Functional'</span>,<span class="string">'Fireplaces'</span>,<span class="string">'FireplaceQu'</span>,<span class="string">'GarageType'</span>,<span class="string">'GarageYrBlt'</span>,<span class="keyword">...</span>
+    <span class="string">'GarageFinish'</span>,<span class="string">'GarageCars'</span>,<span class="string">'GarageArea'</span>,<span class="string">'GarageQual'</span>,<span class="string">'GarageCond'</span>,<span class="string">'PavedDrive'</span>,<span class="string">'WoodDeckSF'</span>,<span class="string">'OpenPorchSF'</span>,<span class="string">'EnclosedPorch'</span>,<span class="keyword">...</span>
+    <span class="string">'3SsnPorch'</span>,<span class="string">'ScreenPorch'</span>,<span class="string">'PoolArea'</span>,<span class="string">'PoolQC'</span>,<span class="string">'Fence'</span>,<span class="string">'MiscFeature'</span>,<span class="string">'MiscVal'</span>,<span class="string">'MoSold'</span>,<span class="string">'YrSold'</span>,<span class="string">'SaleType'</span>,<span class="string">'SaleCondition'</span><span class="keyword">...</span>
+};
+</pre><h2 id="4">Main Routine to call HSIC with different method</h2><h2 id="5">Part I: Proximal Gradient methods</h2><pre class="codeinput">lambda = 1;
+[alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,<span class="string">'proximal_gradient'</span>);
+[~,slected_feature] = sort(alpha_n,<span class="string">'descend'</span>);
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf(<span class="string">'There are %d non-zero alpha value for proximal gradient method with data-sparse mode and the nomrlized objective function value is:%4.3f\n'</span>,size(find(alpha_n&gt;0),1),optvalue_n);
+fprintf(<span class="string">'The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n'</span>,info_n.steps,info_n.time);
+[alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,<span class="string">'proximal_gradient'</span>);
+[~,slected_feature] = sort(alpha_m,<span class="string">'descend'</span>);
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf(<span class="string">'There are %d non-zero alpha value for proximal gradient method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n'</span>,size(find(alpha_m&gt;0),1),optvalue_m);
+fprintf(<span class="string">'The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n'</span>,info_m.steps,info_m.time);
+</pre><pre class="codeoutput">Elapsed time is 0.003521 seconds.
+There are 20 non-zero alpha value for proximal gradient method with data-sparse mode and the nomrlized objective function value is:151.766
+The algorithm takes 32 steps to converge and the time cost is: 0.0036
+
+Elapsed time is 0.006420 seconds.
+There are 54 non-zero alpha value for proximal gradient method with dim-sparse mode and the nomrlized objective function value is:930.848
+The algorithm takes 36 steps to converge and the time cost is: 0.0065
+
+</pre><h2 id="6">Part II: Proximal and Accelerated Proximal Gradient methods</h2><pre class="codeinput">fprintf(<span class="string">'\n\n'</span>);
+lambda = 0.1;
+[alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,<span class="string">'acc_proximal_gradient'</span>);
+[~,slected_feature] = sort(alpha_n,<span class="string">'descend'</span>);
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf(<span class="string">'There are %d non-zero alpha value for accelerated proximal gradient method with data-sparse mode and the nomrlized objective function value is:%4.3f\n'</span>,size(find(alpha_n&gt;0),1),optvalue_n);
+fprintf(<span class="string">'The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n'</span>,info_n.steps,info_n.time);
+[alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,<span class="string">'acc_proximal_gradient'</span>);
+[~,slected_feature] = sort(alpha_m,<span class="string">'descend'</span>);
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf(<span class="string">'There are %d non-zero alpha value for accelerated proximal gradient method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n'</span>,size(find(alpha_m&gt;0),1),optvalue_m);
+fprintf(<span class="string">'The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n'</span>,info_m.steps,info_m.time);
+</pre><pre class="codeoutput">
+
+Elapsed time is 0.001649 seconds.
+There are 34 non-zero alpha value for accelerated proximal gradient method with data-sparse mode and the nomrlized objective function value is:5.076
+The algorithm takes 8 steps to converge and the time cost is: 0.0017
+
+Elapsed time is 0.002777 seconds.
+There are 4 non-zero alpha value for accelerated proximal gradient method with dim-sparse mode and the nomrlized objective function value is:25.821
+The algorithm takes 12 steps to converge and the time cost is: 0.0028
+
+</pre><h2 id="7">Part III: FISTA with constant</h2><pre class="codeinput">fprintf(<span class="string">'\n\n'</span>);
+lambda = 1;
+[alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,<span class="string">'FISTA_const'</span>);
+[~,slected_feature] = sort(alpha_n,<span class="string">'descend'</span>);
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf(<span class="string">'There are %d non-zero alpha value for constant-step FISTA method with data-sparse mode and the nomrlized objective function value is:%4.3f\n'</span>,size(find(alpha_n&gt;0),1),optvalue_n);
+fprintf(<span class="string">'The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n'</span>,info_n.steps,info_n.time);
+[alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,<span class="string">'FISTA_const'</span>);
+[~,slected_feature] = sort(alpha_m,<span class="string">'descend'</span>);
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf(<span class="string">'There are %d non-zero alpha value for constant-step FISTA method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n'</span>,size(find(alpha_m&gt;0),1),optvalue_m);
+fprintf(<span class="string">'The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n'</span>,info_m.steps,info_m.time);
+</pre><pre class="codeoutput">
+
+Elapsed time is 0.006715 seconds.
+There are 72 non-zero alpha value for constant-step FISTA method with data-sparse mode and the nomrlized objective function value is:826.619
+The algorithm takes 99 steps to converge and the time cost is: 0.0068
+
+Elapsed time is 0.017106 seconds.
+There are 75 non-zero alpha value for constant-step FISTA method with dim-sparse mode and the nomrlized objective function value is:4096.945
+The algorithm takes 98 steps to converge and the time cost is: 0.0172
+
+</pre><h2 id="8">Part IV: FISTA with backtrack method</h2><pre class="codeinput">fprintf(<span class="string">'\n\n'</span>);
+lambda = 1;
+[alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,<span class="string">'FISTA_backtrack'</span>);
+[~,slected_feature] = sort(alpha_n,<span class="string">'descend'</span>);
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf(<span class="string">'There are %d non-zero alpha value for backtrack-step FISTA method with data-sparse mode and the nomrlized objective function value is:%4.3f\n'</span>,size(find(alpha_n&gt;0),1),optvalue_n);
+fprintf(<span class="string">'The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n'</span>,info_n.steps,info_n.time);
+[alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,<span class="string">'FISTA_backtrack'</span>);
+[~,slected_feature] = sort(alpha_m,<span class="string">'descend'</span>);
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf(<span class="string">'There are %d non-zero alpha value for backtrack-step FISTA method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n'</span>,size(find(alpha_m&gt;0),1),optvalue_m);
+fprintf(<span class="string">'The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n'</span>,info_m.steps,info_m.time);
+</pre><pre class="codeoutput">
+
+Elapsed time is 0.016465 seconds.
+There are 32 non-zero alpha value for backtrack-step FISTA method with data-sparse mode and the nomrlized objective function value is:4.436
+The algorithm takes 101 steps to converge and the time cost is: 0.0165
+
+Elapsed time is 0.051277 seconds.
+There are 26 non-zero alpha value for backtrack-step FISTA method with dim-sparse mode and the nomrlized objective function value is:31.156
+The algorithm takes 100 steps to converge and the time cost is: 0.0513
+
+</pre><h2 id="9">Part V: Projected Newton with constant step</h2><pre class="codeinput">fprintf(<span class="string">'\n\n'</span>);
+lambda = 0.5;
+[alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,<span class="string">'Newton_proximal_const'</span>);
+[~,slected_feature] = sort(alpha_n,<span class="string">'descend'</span>);
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf(<span class="string">'There are %d non-zero alpha value for constant-step Newton Proximal method with data-sparse mode and the nomrlized objective function value is:%4.3f\n'</span>,size(find(alpha_n&gt;0),1),optvalue_n);
+fprintf(<span class="string">'The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n'</span>,info_n.steps,info_n.time);
+[alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,<span class="string">'Newton_proximal_const'</span>);
+[~,slected_feature] = sort(alpha_m,<span class="string">'descend'</span>);
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf(<span class="string">'There are %d non-zero alpha value for constant-step Newton Proximal method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n'</span>,size(find(alpha_m&gt;0),1),optvalue_m);
+fprintf(<span class="string">'The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n'</span>,info_m.steps,info_m.time);
+</pre><pre class="codeoutput">
+
+Elapsed time is 0.027056 seconds.
+There are 42 non-zero alpha value for constant-step Newton Proximal method with data-sparse mode and the nomrlized objective function value is:21.232
+The algorithm takes 16 steps to converge and the time cost is: 0.0271
+
+Elapsed time is 0.043636 seconds.
+There are 16 non-zero alpha value for constant-step Newton Proximal method with dim-sparse mode and the nomrlized objective function value is:27.147
+The algorithm takes 16 steps to converge and the time cost is: 0.0437
+
+</pre><h2 id="10">Part VI: Projected Newton with backtracking step</h2><pre class="codeinput">fprintf(<span class="string">'\n\n'</span>);
+lambda = 0.1;
+[alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,<span class="string">'Newton_proximal_backtrack'</span>);
+[~,slected_feature] = sort(alpha_n,<span class="string">'descend'</span>);
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf(<span class="string">'There are %d non-zero alpha value for backtracking-step Newton Proximal method with data-sparse mode and the nomrlized objective function value is:%4.3f\n'</span>,size(find(alpha_n&gt;0),1),optvalue_n);
+fprintf(<span class="string">'The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n'</span>,info_n.steps,info_n.time);
+[alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,<span class="string">'Newton_proximal_backtrack'</span>);
+[~,slected_feature] = sort(alpha_m,<span class="string">'descend'</span>);
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf(<span class="string">'There are %d non-zero alpha value for backtracking-step Newton Proximal method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n'</span>,size(find(alpha_m&gt;0),1),optvalue_m);
+fprintf(<span class="string">'The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n'</span>,info_m.steps,info_m.time);
+</pre><pre class="codeoutput">
+
+Elapsed time is 0.018904 seconds.
+There are 47 non-zero alpha value for backtracking-step Newton Proximal method with data-sparse mode and the nomrlized objective function value is:4.543
+The algorithm takes 7 steps to converge and the time cost is: 0.0190
+
+Elapsed time is 0.026947 seconds.
+There are 19 non-zero alpha value for backtracking-step Newton Proximal method with dim-sparse mode and the nomrlized objective function value is:21.980
+The algorithm takes 4 steps to converge and the time cost is: 0.0270
+
+</pre><h2 id="11">Part VII: Dual Augmented Lagrangian (Implement)</h2><pre class="codeinput">fprintf(<span class="string">'\n\n'</span>);
+lambda = 0.1;
+[alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,<span class="string">'DAL'</span>);
+[~,slected_feature] = sort(alpha_n,<span class="string">'descend'</span>);
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf(<span class="string">'There are %d non-zero alpha value for Dual Augmented Lagrangian method with data-sparse mode and the nomrlized objective function value is:%4.3f\n'</span>,size(find(alpha_n&gt;0),1),optvalue_n);
+fprintf(<span class="string">'The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n'</span>,info_n.steps,info_n.time);
+[alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,<span class="string">'DAL'</span>);
+[~,slected_feature] = sort(alpha_m,<span class="string">'descend'</span>);
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf(<span class="string">'There are %d non-zero alpha value for Dual Augmented Lagrangian method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n'</span>,size(find(alpha_m&gt;0),1),optvalue_m);
+fprintf(<span class="string">'The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n'</span>,info_m.steps,info_m.time);
+</pre><pre class="codeoutput">
+
+Elapsed time is 0.003252 seconds.
+There are 8 non-zero alpha value for Dual Augmented Lagrangian method with data-sparse mode and the nomrlized objective function value is:10.707
+The algorithm takes 6 steps to converge and the time cost is: 0.0033
+
+Elapsed time is 2.069682 seconds.
+There are 1 non-zero alpha value for Dual Augmented Lagrangian method with dim-sparse mode and the nomrlized objective function value is:26.403
+The algorithm takes 5 steps to converge and the time cost is: 2.0697
+
+</pre><h2 id="12">Part VIII: ADMM method</h2><pre class="codeinput">fprintf(<span class="string">'\n\n'</span>);
+lambda = 0.1;
+[alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,<span class="string">'ADMM'</span>);
+[~,slected_feature] = sort(alpha_n,<span class="string">'descend'</span>);
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf(<span class="string">'There are %d non-zero alpha value for ADMM method with data-sparse mode and the nomrlized objective function value is:%4.3f\n'</span>,size(find(alpha_n&gt;0),1),optvalue_n);
+fprintf(<span class="string">'The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n'</span>,info_n.steps,info_n.time);
+[alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,<span class="string">'ADMM'</span>);
+[~,slected_feature] = sort(alpha_m,<span class="string">'descend'</span>);
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf(<span class="string">'There are %d non-zero alpha value for ADMM method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n'</span>,size(find(alpha_m&gt;0),1),optvalue_m);
+fprintf(<span class="string">'The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n'</span>,info_m.steps,info_m.time);
+</pre><pre class="codeoutput">
+
+Elapsed time is 0.006740 seconds.
+There are 34 non-zero alpha value for ADMM method with data-sparse mode and the nomrlized objective function value is:2.697
+The algorithm takes 7 steps to converge and the time cost is: 0.0068
+
+Elapsed time is 0.060348 seconds.
+There are 10 non-zero alpha value for ADMM method with dim-sparse mode and the nomrlized objective function value is:34.941
+The algorithm takes 500 steps to converge and the time cost is: 0.0604
+
+</pre><h2 id="13">Part extra: DAL method with package</h2><pre class="codeinput"><span class="comment">%****************************************</span>
+<span class="comment">%This is the DAL method with integrated package, which could somehow be</span>
+<span class="comment">%used as a 'benchmark' criteria to see if the algorithms works well</span>
+<span class="comment">%In the original proposal of the HSIC Lasso paper, the author suggested to</span>
+<span class="comment">%use this. This is also the original software provided by the HSIC Lasso</span>
+<span class="comment">%authors.</span>
+<span class="comment">%****************************************</span>
+<span class="comment">% fprintf('\n\n');</span>
+<span class="comment">% lambda = 0.1;</span>
+<span class="comment">% [alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,'DAL_package');</span>
+<span class="comment">% [~,slected_feature] = sort(alpha_n,'descend');</span>
+<span class="comment">% most_features = feature_filter(slected_feature);</span>
+<span class="comment">% current_selected_feature = FeatureDic(most_features);</span>
+<span class="comment">% fprintf('There are %d non-zero alpha value for DAL (package) method with data-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_n&gt;0),1),optvalue_n);</span>
+<span class="comment">% fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_n.steps,info_n.time);</span>
+<span class="comment">% [alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,'DAL_package');</span>
+<span class="comment">% [~,slected_feature] = sort(alpha_m,'descend');</span>
+<span class="comment">% most_features = feature_filter(slected_feature);</span>
+<span class="comment">% current_selected_feature = FeatureDic(most_features);</span>
+<span class="comment">% fprintf('There are %d non-zero alpha value for DAL (package)  method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_m&gt;0),1),optvalue_m);</span>
+<span class="comment">% fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_m.steps,info_m.time);</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% ********************************************************
+%*Description: HSIC Lasso for solving house price feature selection
+%*Data: Kaggle house pricing data (only for assignment usage)
+%*Author: Chen Wang, UCL Dept. of Computer Science
+%*Reference: Yamada et al. 2013, High-Dimensional Feature Selection by Feature-Wise Kernelized Lasso
+%*Reference: Yamada et al. related software
+%***********************************************************
+clc;
+clear;
+close all
+%% load the data
+data_path = '../data/';
+%load DAL package
+addpath(genpath('DAL_opt'));
+addpath(genpath('zeroSR1_opt'));
+run setup_zeroSR1.m;
+%Load 
+%Train Data
+Train_Data = csvread(strcat(data_path,'train_data.csv'),1,1);
+TrainX = Train_Data(:,1:end-1);
+TrainY = Train_Data(:,end);
+%Normalized Training Data
+TrainX_Normalized = TrainX./repmat(max(TrainX,[],1),size(TrainX,1),1);
+%Test Data
+Test_Data = csvread(strcat(data_path,'test_data.csv'),1,1);
+TestX = Test_Data(:,1:end-1);
+TestY = Test_Data(:,end);
+%Normalized Test Data
+TestX_Normalized = TestX./repmat(max(TestX,[],1),size(TestX,1),1);
+%fix the random parameter
+rand('seed',2018);
+%get 5 random data for d>n^2 test
+index_5 = randi([1,size(TrainX,1)],5,1);
+Sparse_data_train_X = TrainX(index_5,:);
+Sparse_data_train_Y = TrainY(index_5,:);
+%get 50 random data for d<n^2 test
+index_50 = randi([1,size(TrainX,1)],50,1);
+Sparse_dim_train_X = TrainX(index_50,:);
+Sparse_dim_train_Y = TrainY(index_50,:);
+
+%% A feature dictionary to Illustrate if our method works well
+FeatureDic = {'MSSubClass','MSZoning','LotFrontage','LotArea','Street','Alley','LotShape','LandContour',...
+    'Utilities','LotConfig','LandSlope','Neighborhood','Condition1','Condition2','BldgType','HouseStyle',...
+    'OverallQual','OverallCond','YearBuilt','YearRemodAdd','RoofStyle','RoofMatl','Exterior1st','Exterior2nd',...
+    'MasVnrType','MasVnrArea','ExterQual','ExterCond','Foundation','BsmtQual','BsmtCond','BsmtExposure','BsmtFinType1',...
+    'BsmtFinSF1','BsmtFinType2','BsmtFinSF2','BsmtUnfSF','TotalBsmtSF','Heating','HeatingQC','CentralAir','Electrical',...
+    '1stFlrSF','2ndFlrSF','LowQualFinSF','GrLivArea','BsmtFullBath','BsmtHalfBath','FullBath','HalfBath','BedroomAbvGr',...
+    'KitchenAbvGr','KitchenQual','TotRmsAbvGrd','Functional','Fireplaces','FireplaceQu','GarageType','GarageYrBlt',...
+    'GarageFinish','GarageCars','GarageArea','GarageQual','GarageCond','PavedDrive','WoodDeckSF','OpenPorchSF','EnclosedPorch',...
+    '3SsnPorch','ScreenPorch','PoolArea','PoolQC','Fence','MiscFeature','MiscVal','MoSold','YrSold','SaleType','SaleCondition'...
+};
+
+%% Main Routine to call HSIC with different method
+%% Part I: Proximal Gradient methods
+lambda = 1;
+[alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,'proximal_gradient');
+[~,slected_feature] = sort(alpha_n,'descend');
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf('There are %d non-zero alpha value for proximal gradient method with data-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_n>0),1),optvalue_n);
+fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_n.steps,info_n.time);
+[alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,'proximal_gradient');
+[~,slected_feature] = sort(alpha_m,'descend');
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf('There are %d non-zero alpha value for proximal gradient method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_m>0),1),optvalue_m);
+fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_m.steps,info_m.time);
+
+%% Part II: Proximal and Accelerated Proximal Gradient methods
+fprintf('\n\n');
+lambda = 0.1;
+[alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,'acc_proximal_gradient');
+[~,slected_feature] = sort(alpha_n,'descend');
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf('There are %d non-zero alpha value for accelerated proximal gradient method with data-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_n>0),1),optvalue_n);
+fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_n.steps,info_n.time);
+[alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,'acc_proximal_gradient');
+[~,slected_feature] = sort(alpha_m,'descend');
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf('There are %d non-zero alpha value for accelerated proximal gradient method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_m>0),1),optvalue_m);
+fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_m.steps,info_m.time);
+
+%% Part III: FISTA with constant
+fprintf('\n\n');
+lambda = 1;
+[alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,'FISTA_const');
+[~,slected_feature] = sort(alpha_n,'descend');
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf('There are %d non-zero alpha value for constant-step FISTA method with data-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_n>0),1),optvalue_n);
+fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_n.steps,info_n.time);
+[alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,'FISTA_const');
+[~,slected_feature] = sort(alpha_m,'descend');
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf('There are %d non-zero alpha value for constant-step FISTA method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_m>0),1),optvalue_m);
+fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_m.steps,info_m.time);
+
+%% Part IV: FISTA with backtrack method
+fprintf('\n\n');
+lambda = 1;
+[alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,'FISTA_backtrack');
+[~,slected_feature] = sort(alpha_n,'descend');
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf('There are %d non-zero alpha value for backtrack-step FISTA method with data-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_n>0),1),optvalue_n);
+fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_n.steps,info_n.time);
+[alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,'FISTA_backtrack');
+[~,slected_feature] = sort(alpha_m,'descend');
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf('There are %d non-zero alpha value for backtrack-step FISTA method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_m>0),1),optvalue_m);
+fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_m.steps,info_m.time);
+
+%% Part V: Projected Newton with constant step
+fprintf('\n\n');
+lambda = 0.5;
+[alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,'Newton_proximal_const');
+[~,slected_feature] = sort(alpha_n,'descend');
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf('There are %d non-zero alpha value for constant-step Newton Proximal method with data-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_n>0),1),optvalue_n);
+fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_n.steps,info_n.time);
+[alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,'Newton_proximal_const');
+[~,slected_feature] = sort(alpha_m,'descend');
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf('There are %d non-zero alpha value for constant-step Newton Proximal method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_m>0),1),optvalue_m);
+fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_m.steps,info_m.time);
+
+%% Part VI: Projected Newton with backtracking step
+fprintf('\n\n');
+lambda = 0.1;
+[alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,'Newton_proximal_backtrack');
+[~,slected_feature] = sort(alpha_n,'descend');
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf('There are %d non-zero alpha value for backtracking-step Newton Proximal method with data-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_n>0),1),optvalue_n);
+fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_n.steps,info_n.time);
+[alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,'Newton_proximal_backtrack');
+[~,slected_feature] = sort(alpha_m,'descend');
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf('There are %d non-zero alpha value for backtracking-step Newton Proximal method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_m>0),1),optvalue_m);
+fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_m.steps,info_m.time);
+
+%% Part VII: Dual Augmented Lagrangian (Implement)
+fprintf('\n\n');
+lambda = 0.1;
+[alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,'DAL');
+[~,slected_feature] = sort(alpha_n,'descend');
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf('There are %d non-zero alpha value for Dual Augmented Lagrangian method with data-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_n>0),1),optvalue_n);
+fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_n.steps,info_n.time);
+[alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,'DAL');
+[~,slected_feature] = sort(alpha_m,'descend');
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf('There are %d non-zero alpha value for Dual Augmented Lagrangian method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_m>0),1),optvalue_m);
+fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_m.steps,info_m.time);
+
+%% Part VIII: ADMM method
+fprintf('\n\n');
+lambda = 0.1;
+[alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,'ADMM');
+[~,slected_feature] = sort(alpha_n,'descend');
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf('There are %d non-zero alpha value for ADMM method with data-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_n>0),1),optvalue_n);
+fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_n.steps,info_n.time);
+[alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,'ADMM');
+[~,slected_feature] = sort(alpha_m,'descend');
+most_features = feature_filter(slected_feature);
+current_selected_feature = FeatureDic(most_features);
+fprintf('There are %d non-zero alpha value for ADMM method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_m>0),1),optvalue_m);
+fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_m.steps,info_m.time);
+
+%% Part extra: DAL method with package
+%****************************************
+%This is the DAL method with integrated package, which could somehow be
+%used as a 'benchmark' criteria to see if the algorithms works well
+%In the original proposal of the HSIC Lasso paper, the author suggested to
+%use this. This is also the original software provided by the HSIC Lasso
+%authors.
+%****************************************
+% fprintf('\n\n');
+% lambda = 0.1;
+% [alpha_n,optvalue_n,info_n] = HSIC_feature_selection(Sparse_data_train_X,Sparse_data_train_Y,lambda,'DAL_package');
+% [~,slected_feature] = sort(alpha_n,'descend');
+% most_features = feature_filter(slected_feature);
+% current_selected_feature = FeatureDic(most_features);
+% fprintf('There are %d non-zero alpha value for DAL (package) method with data-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_n>0),1),optvalue_n);
+% fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_n.steps,info_n.time);
+% [alpha_m,optvalue_m,info_m] = HSIC_feature_selection(Sparse_dim_train_X,Sparse_dim_train_Y,lambda,'DAL_package');
+% [~,slected_feature] = sort(alpha_m,'descend');
+% most_features = feature_filter(slected_feature);
+% current_selected_feature = FeatureDic(most_features);
+% fprintf('There are %d non-zero alpha value for DAL (package)  method with dim-sparse mode and the nomrlized objective function value is:%4.3f\n',size(find(alpha_m>0),1),optvalue_m);
+% fprintf('The algorithm takes %d steps to converge and the time cost is: %4.4f\n\n',info_m.steps,info_m.time);
+##### SOURCE END #####
+--></body></html>
